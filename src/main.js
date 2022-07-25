@@ -8,7 +8,7 @@ import './common/less/mixin.less';
 Vue.use(List);
 Vue.use(Popup);
 
-const token = '3bb7ce6ff0ea13d21a635f014b132b45';
+const token = '2f1f67dc8129f61cff03af8a2a8095ce';
 localStorage.setItem('token', token);
 
 Vue.config.productionTip = false;
