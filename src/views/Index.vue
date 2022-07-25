@@ -347,8 +347,8 @@ export default {
   position: fixed;
   top: 0;
   left: 0;
-  padding: 20px 24px;
-  height: 100px;
+  padding: 30px 30px;
+  height: 110px;
   width: 100%;
   box-sizing: border-box;
   background: #fff;
@@ -367,6 +367,8 @@ export default {
     background: transparent;
     border-radius: 36px;
     color: #333;
+    min-width: 100px;
+
   }
   .clear-input {
     position: absolute;
@@ -388,7 +390,7 @@ export default {
   }
 }
 .list {
-  padding-top: 88px + 88px;
+  padding-top: 88px + 110px;
   .item {
     display: flex;
     margin: 0 30px;
@@ -538,7 +540,7 @@ export default {
 		align-items: center;
 		width: 100%;
 		position: fixed;
-		top: 88px;
+		top: 110px;
     height: 88px;
 		left: 0;
 		z-index: 2;

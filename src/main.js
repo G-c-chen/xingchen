@@ -10,6 +10,7 @@ Vue.use(Popup);
 
 const token = '2f1f67dc8129f61cff03af8a2a8095ce';
 localStorage.setItem('token', token);
+document.title = '星辰网络'
 
 Vue.config.productionTip = false;
 
