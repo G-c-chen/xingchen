@@ -4,6 +4,7 @@
             <input
                 class="text-input"
                 v-model="words"
+                v-on:keyup.enter="searchClick"
                 placeholder="请输入关键词搜索微信群"
             />
             <div
@@ -191,8 +192,8 @@ export default {
       }
       const qrcode = new QRCode(this.$refs.qrcode, {
         text: this.qrcode_url, //要跳转的链接
-        width: width || 200,
-        height: height || 200,
+        width: 200,
+        height: 200,
         colorDark: "#000",
         colorLight: "#fff",
         correctLevel: QRCode.CorrectLevel.L, // L M  H
@@ -445,7 +446,7 @@ export default {
 }
 .code-box {
   opacity: 0;
-  position: absolute;
+  position: fixed;
   top: -1000px;
   left: 0;
 }
@@ -497,8 +498,8 @@ export default {
     font-weight: 700;
   }
   .code-img {
-    width: 400px;
-    height: 400px;
+    width: 450px;
+    // height: 500px;
     background-color: #fff;
     padding: 40px;
   }
