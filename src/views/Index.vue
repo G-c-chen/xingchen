@@ -1,6 +1,7 @@
 <template>
   <div class="page">
-            <div class="header">
+      <div class="page-content" v-if="showPage">
+          <div class="header">
             <input
                 class="text-input"
                 v-model="words"
@@ -67,6 +68,13 @@
         <div class="no-data" v-if="noData">
           --暂无数据--
         </div>
+      </div>
+      <div class="tips-content" v-else>
+        <img src="../assets/wechat.jpeg" alt="">
+        <p>-- 登录已过期,有疑问请联系站长 --</p>
+        <p class="tips-txt" v-if="mode === 'official'" @click="toLogin">点击重新登录</p>
+        <p v-if="mode === 'temp'">请购买使用</p>
+      </div>
         <!-- <van-popup v-model="showPop" position="center" class="code-pop">
           <div class="content">
             <p class="code-title">扫码加群</p>
@@ -105,6 +113,11 @@ import { Toast } from "vant";
 export default {
   data() {
     return {
+      tempCode: 'gcchen_hahaha',
+      officialCode: 'gcchan',
+      showPage: false,
+      session_time: false,
+      code: '',
       list: [],
       words: "",
       type: "all",
@@ -140,7 +153,72 @@ export default {
       ]
     };
   },
+  computed: {
+    mode() {
+      // 临时: tempCode, 正式: tempCode, 无效: invalid
+      let {tempCode, officialCode, code} = this;
+      let seeion_code = localStorage.getItem('code');
+      code = code || seeion_code;
+      let mode = ''
+      if (code === tempCode) {
+        mode = 'temp';
+      } else if (code === officialCode) {
+        mode = 'official';
+      } else {
+        mode = 'invalid';
+      }
+      // console.log(mode, 'mode');
+      return mode;
+    }
+  },
   methods: {
+    /**
+     * 设置同类多实例的响应缓存（防止缓存内存过大的处理）
+     * @param classKey 缓存的一个类型
+     * @param key 该缓存类型的一个实例
+     * @param val 该缓存实例的值
+     * @param expire 该缓存实例的过期时间戳（秒级）
+     */
+    setClassStorage(
+        classKey = '',
+        key = '',
+        val = '',
+        expire = Math.floor(Date.now() / 1000) + 7 * 86400
+    ) {
+        let obj = JSON.parse(localStorage.getItem(classKey) || '{}');
+        obj[key] = {
+            val,
+            e: expire,
+        };
+        let nowTime = Math.floor(Date.now() / 1000);
+        let newObj = {};
+        Object.keys(obj).forEach((objKey) => {
+            let item = obj[objKey];
+            if (item.e > nowTime) {
+                newObj[objKey] = item;
+            }
+        });
+        localStorage.setItem(classKey, JSON.stringify(newObj));
+    },
+    /**
+      * 获取同类多实例的响应缓存
+      * @param classKey 缓存的一个类型
+      * @param key 该缓存类型的一个实例
+      * @return Object {val: key的缓存值, e: key的过期时间戳}
+      */
+    getClassStorage(classKey = '', key = '') {
+        let obj = JSON.parse(localStorage.getItem(classKey)|| '{}');
+        if (obj && obj[key] && obj[key].e > Math.floor(Date.now() / 1000)) {
+            return obj[key];
+        } else {
+          if (obj && obj[key]) {
+            // console.log('1234');
+            return {val: false};
+          } else {
+            return {};
+          }
+        }
+    },
     changeNav(item) {
       this.curType = item.type;
       this.reloadData();
@@ -173,7 +251,7 @@ export default {
       this.finished = false;
       this.noData = false;
       this.list = [];
-      console.log('搜索');
+      // console.log('搜索');
       this.loadData();
     },
     initCode() {
@@ -208,7 +286,7 @@ export default {
       }).then(canvas => {
         const imgData = canvas.toDataURL("image/jpeg");
         this.imgData = imgData;
-        console.log(this.imgData, 'this.imgData');
+        // console.log(this.imgData, 'this.imgData');
         this.$nextTick(() => {
           this.showCodePop();
         })
@@ -236,10 +314,10 @@ export default {
         }
         this.verify = false;
         this.captcha_code = '';
-        item.note = {},
-        console.log(res, "res==");
+        item.note = {};
+        // console.log(res, "res==");
         let quncard = res.quncard;
-        console.log(quncard);
+        // console.log(quncard);
         this.quncardInfo = quncard;
         this.qrcode_url = quncard.qrcode;
         this.initCode();
@@ -262,12 +340,12 @@ export default {
       }).then(res => {
         this.loading = false;
         if (res.code !== 0) {
-          console.log(res, 'res');
+          // console.log(res, 'res');
           this.finished = true;
           this.isLogin = false;
           return;
         }
-        console.log(res.list.data, "res");
+        // console.log(res.list.data, "res");
         let list = res.list.data;
         if (!list.length) {
           this.finished = true;
@@ -280,7 +358,7 @@ export default {
           this.finished = true;
           this.noData = true;
         }
-        console.log(this.list, "===list===");
+        // console.log(this.list, "===list===");
         this.page++;
       });
     },
@@ -293,7 +371,7 @@ export default {
     var halfamonth = day * 15;
     var month = day * 30;
     var now = new Date().getTime();   //获取当前时间毫秒
-    console.log(now)
+    // console.log(now)
     var diffValue = now - dateTimeStamp;//时间差
 
     if(diffValue < 0){
@@ -331,9 +409,47 @@ export default {
     }
 	return result;
 },
+// 设置有效时间
+setLimitTime() {
+  let {code, mode} = this;
+  let session_time = this.getClassStorage('session_time', 'user').val;
+  // console.log(session_time, 'this.session_time123');
+  this.showPage = session_time;
+  // console.log(code, 'code', mode, 'mode', session_time, 'session_time', session_time === undefined);
+  if (code) {
+    // 链接有带code
+    if (session_time) {
+      // session没过期
+      return;
+    }
+    // 链接带code并且没有seesiom，更新session
+    if (mode === 'temp' && session_time === undefined) {
+      // console.log('设置有效时间');
+      this.setClassStorage('session_time', 'user', true,  Math.floor(Date.now() / 1000) + 1 * 3600);
+    } else if (mode === 'official') {
+      // console.log('设置有效时间');
+      // 正式code更新sesssion
+      this.setClassStorage('session_time', 'user', true,  Math.floor(Date.now() / 1000) + 2 * 86400);
+    }
+  }
+
+  this.session_time = this.getClassStorage('session_time', 'user').val;
+  // console.log(this.session_time, 'this.session_time123');
+  this.showPage = this.session_time;
+},
+toLogin() {
+  location.href = 'https://gcchen.cn';
+}
   },
   mounted() {
     this.loadData();
+    this.code = this.$route.query.code || '';
+    this.$router.push('/');
+    // console.log(this.code, 'code');
+    if (this.code) {
+      localStorage.setItem('code', this.code);
+    }
+    this.setLimitTime();
   },
 };
 </script>
@@ -575,4 +691,18 @@ export default {
 			}
 		}
 	}
+  .tips-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 32px;
+    img {
+      width: 500px;
+    }
+    .tips-txt {
+      color: #07c160;
+      margin-top: 40px;
+    }
+  }
 </style>
