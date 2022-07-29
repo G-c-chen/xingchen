@@ -113,7 +113,7 @@ import { Toast } from "vant";
 export default {
   data() {
     return {
-      tempCode: 'gcchen_hahaha',
+      tempCode: 'gcchen_hahaha1',
       officialCode: 'gcchan',
       showPage: false,
       session_time: false,
