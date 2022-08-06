@@ -449,6 +449,7 @@ toLogin() {
     if (this.code) {
       localStorage.setItem('code', this.code);
     }
+    localStorage.removeItem('session_time');
     this.setLimitTime();
   },
 };
