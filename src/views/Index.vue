@@ -72,7 +72,7 @@
       <div class="tips-content" v-else>
         <img src="../assets/wechat.jpeg" alt="">
         <p>-- 登录已过期,有疑问请联系站长 --</p>
-        <p class="tips-txt" v-if="mode === 'official'" @click="toLogin">点击重新登录</p>
+        <p class="tips-txt" v-if="mode === 'official' || 1" @click="toLogin">点击重新登录</p>
         <p v-if="mode === 'temp'">请购买使用</p>
       </div>
         <!-- <van-popup v-model="showPop" position="center" class="code-pop">
@@ -114,7 +114,7 @@ export default {
   data() {
     return {
       tempCode: 'gcchen_hahaha1',
-      officialCode: 'gcchan',
+      officialCode: 'gcchan_adc',
       showPage: false,
       session_time: false,
       code: '',
