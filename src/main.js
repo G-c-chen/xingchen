@@ -9,7 +9,7 @@ import './common/less/mixin.less';
 Vue.use(List);
 Vue.use(Popup);
 
-const token = '7f912838fca3cefc09d1302a254e3a53';
+const token = '405e7243c1ca7078e84a25b7436d0427';
 localStorage.setItem('token', token);
 document.title = '星辰网络'
 

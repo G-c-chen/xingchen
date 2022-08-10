@@ -42,7 +42,7 @@
                 class="item"
                 v-if="item.type !== 'ad'"
             >
-              <img class="item-avatar" :src="`${host}${item.avatar}`" alt="">
+              <img class="item-avatar" :src="item.type === 'mine' ? item.avatar : `${host}${item.avatar}`" alt="">
               <div class="item-desc">
                 <p class="item-title line-ellipsis1">{{item.name}}</p>
                 <div class="item-count">
@@ -114,11 +114,20 @@ export default {
   data() {
     return {
       tempCode: 'gcchen_hahaha1',
-      officialCode: 'gcchan_adc',
+      officialCode: 'gcchan_cxc',
       showPage: false,
       session_time: false,
       code: '',
       list: [],
+      mineList: [
+        {
+          name: '电商创业交流群',
+          avatar: 'https://img1.imgtp.com/2022/08/10/jbLHGIvW.png',
+          type: 'mine',
+          create_time: 1660138063,
+          qrcode: 'https://weixin.qq.com/g/AwYAAEL67LHQPVHW3UNnVP7euul3V4nICNhddKzbVm15GgpPyrVT1P72Pwv5MJtQ',
+        }
+      ],
       words: "",
       type: "all",
       page: 1,
@@ -297,31 +306,38 @@ export default {
       this.checkItem = item;
       let { id } = item;
       let { captcha_code, captcha_key, verify } = this;
-      let url = `/Quncard/getQunCard?id=${id}`;
-      if (verify) {
-        url = `/Quncard/getQunCard?id=${id}&captcha_code=${captcha_code}&captcha_key=${captcha_key}`;
-      }
-      request({
-        apiPath: url,
-      }).then(res => {
-        if (res.code != '0') {
-          if (res.code === 3) {
-            // 需要验证
-            this.verify = true;
-            this.getVerifyCode();
-          }
-          return;
+      if (item.type !== 'mine') {     
+        let url = `/Quncard/getQunCard?id=${id}`;
+        if (verify) {
+          url = `/Quncard/getQunCard?id=${id}&captcha_code=${captcha_code}&captcha_key=${captcha_key}`;
         }
-        this.verify = false;
-        this.captcha_code = '';
+        request({
+          apiPath: url,
+        }).then(res => {
+          if (res.code != '0') {
+            if (res.code === 3) {
+              // 需要验证
+              this.verify = true;
+              this.getVerifyCode();
+            }
+            return;
+          }
+          this.verify = false;
+          this.captcha_code = '';
+          item.note = {};
+          // console.log(res, "res==");
+          let quncard = res.quncard;
+          // console.log(quncard);
+          this.quncardInfo = quncard;
+          this.qrcode_url = quncard.qrcode;
+          this.initCode();
+        });
+      } else {
+        this.quncardInfo = item;
+        this.qrcode_url = item.qrcode;
         item.note = {};
-        // console.log(res, "res==");
-        let quncard = res.quncard;
-        // console.log(quncard);
-        this.quncardInfo = quncard;
-        this.qrcode_url = quncard.qrcode;
         this.initCode();
-      });
+      }
     },
     getVerifyCode() {
       request({
@@ -359,6 +375,18 @@ export default {
           this.noData = true;
         }
         // console.log(this.list, "===list===");
+        // 添加收费的群信息
+        if (this.page === 1 && curType === 'all') {
+          if (words) {
+            let arr = this.mineList.filter(item => {
+              return item.name.includes(words);
+            })
+            this.list.unshift(...arr);
+            } else {
+            this.list.unshift(...this.mineList);
+          }
+          console.log(this.list, 'list');
+        }
         this.page++;
       });
     },
@@ -409,34 +437,6 @@ export default {
     }
 	return result;
 },
-// 设置有效时间
-setLimitTime() {
-  let {code, mode} = this;
-  let session_time = this.getClassStorage('session_time', 'user').val;
-  // console.log(session_time, 'this.session_time123');
-  this.showPage = session_time;
-  // console.log(code, 'code', mode, 'mode', session_time, 'session_time', session_time === undefined);
-  if (code) {
-    // 链接有带code
-    if (session_time) {
-      // session没过期
-      return;
-    }
-    // 链接带code并且没有seesiom，更新session
-    if (mode === 'temp' && session_time === undefined) {
-      // console.log('设置有效时间');
-      this.setClassStorage('session_time', 'user', true,  Math.floor(Date.now() / 1000) + 1 * 3600);
-    } else if (mode === 'official') {
-      // console.log('设置有效时间');
-      // 正式code更新sesssion
-      this.setClassStorage('session_time', 'user', true,  Math.floor(Date.now() / 1000) + 2 * 86400);
-    }
-  }
-
-  this.session_time = this.getClassStorage('session_time', 'user').val;
-  // console.log(this.session_time, 'this.session_time123');
-  this.showPage = this.session_time;
-},
 toLogin() {
   location.href = 'https://gcchen.cn';
 }
@@ -445,12 +445,13 @@ toLogin() {
     this.loadData();
     this.code = this.$route.query.code || '';
     this.$router.push('/');
-    // console.log(this.code, 'code');
     if (this.code) {
       localStorage.setItem('code', this.code);
     }
-    localStorage.removeItem('session_time');
-    this.setLimitTime();
+    let code = this.code || localStorage.getItem('code') || '';
+    if (this.officialCode === code) {
+      this.showPage = true;
+    }
   },
 };
 </script>
