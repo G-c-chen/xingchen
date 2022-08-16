@@ -1,6 +1,6 @@
 <template>
   <div class="page">
-      <div class="page-content" v-if="showPage">
+      <div class="page-content">
           <div class="header">
             <input
                 class="text-input"
@@ -53,8 +53,8 @@
                   <span class="date">{{timeago(item.create_time)}}</span>
                 </div>
               </div>
-              <span class="item-btn" :class="{active: item.note}" @click="getQRcode(item)">
-                {{item.note ? '已查看' : '加群'}}
+              <span class="item-btn" :class="{active: item.note && showPage}" @click="getQRcode(item)">
+                {{(item.note && showPage) ? '已查看' : '加群'}}
               </span>
             </div>
             <div
@@ -69,12 +69,16 @@
           --暂无数据--
         </div>
       </div>
-      <div class="tips-content" v-else>
+      
+      <!-- <van-popup v-model="showMineCode">
+
+      </van-popup> -->
+      <!-- <div class="tips-content" v-else>
         <img src="../assets/wechat.jpeg" alt="">
         <p>-- 登录已过期,有疑问请联系站长 --</p>
         <p class="tips-txt" v-if="mode === 'official' || 1" @click="toLogin">点击重新登录</p>
         <p v-if="mode === 'temp'">请购买使用</p>
-      </div>
+      </div> -->
         <!-- <van-popup v-model="showPop" position="center" class="code-pop">
           <div class="content">
             <p class="code-title">扫码加群</p>
@@ -303,6 +307,10 @@ export default {
     },
     // 获取二维码
     getQRcode(item) {
+      if (!this.showPage) {
+        Toast('没有查看权限, 若已购买请重新登录查看');
+        return;
+      }
       this.checkItem = item;
       let { id } = item;
       let { captcha_code, captcha_key, verify } = this;
